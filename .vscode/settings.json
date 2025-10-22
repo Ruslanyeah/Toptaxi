@@ -1,0 +1,6 @@
+{
+    "files.saveConflictResolution": "overwriteFileOnDisk",
+    "geminicodeassist.agentYoloMode": true,
+    "geminicodeassist.agentDebugMode": true,
+    "geminicodeassist.chat.defaultCodeBlockDisplay": "Expanded"
+}

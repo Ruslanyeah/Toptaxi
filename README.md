@@ -26,7 +26,11 @@ Telegram-бот для виклику таксі Nubira. Дозволяє шви
 
 1. Клонуйте репозиторій: `git clone https://github.com/Noisy7503-max/Nubira-Taxi.git`
 2. Створіть віртуальне оточення: `python3 -m venv venv`
-3. Активуйте віртуальне оточення: `source venv/bin/activate` (Linux/macOS) або `venv\Scripts\activate` (Windows)
+3. Активуйте віртуальне оточення:
+   - **Linux/macOS:** `source venv/bin/activate`
+   - **Windows (Command Prompt):** `venv\Scripts\activate`
+   - **Windows (PowerShell):** `.\venv\Scripts\Activate.ps1`
+   *(Якщо виникає помилка виконання скриптів у PowerShell, виконайте `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process`)*
 4. Встановіть залежності: `pip install -r requirements.txt`
 5. Запустіть бота: `python main.py`
 

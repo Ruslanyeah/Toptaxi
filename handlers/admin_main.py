@@ -7,11 +7,12 @@ from dateutil import parser
 from states.fsm_states import AdminState
 from database import queries as db_queries
 from keyboards.common import Navigate
-from keyboards.reply_keyboards import main_menu_keyboard, fsm_cancel_keyboard
+from keyboards.reply_keyboards import main_menu_keyboard
 from .common.paginator import show_paginated_list
 from config.config import BASE_DIR
 from .common.helpers import send_message_with_photo
-from keyboards.admin_keyboards import get_admin_keyboard
+from keyboards.admin_keyboards import get_admin_keyboard, get_driver_management_keyboard, get_order_management_keyboard
+from .admin import admin_router
 
 router = Router()
 
@@ -20,16 +21,26 @@ DRIVERS_PER_PAGE = 5
 CLIENTS_PER_PAGE = 5
 ORDERS_PER_PAGE = 5
 
+from config.config import ADMIN_IDS
+
 class IsAdmin(BaseFilter):
     """
     Custom filter to check if a user is an admin.
+    Checks both the database and the ADMIN_IDS from config.
     """
-    async def __call__(self, message: types.Message) -> bool:
-        return await db_queries.is_admin(message.from_user.id)
+    async def __call__(self, event: types.Message | types.CallbackQuery) -> bool:
+        user_id = event.from_user.id
+        if user_id in ADMIN_IDS:
+            return True
+        return await db_queries.is_admin(user_id)
+
+# Применяем фильтр IsAdmin ко всему роутеру. Теперь все хендлеры ниже доступны только админам.
+router.message.filter(IsAdmin())
+router.callback_query.filter(IsAdmin())
 
 # --- Admin Panel Entry ---
 
-@router.message(Command("admin"), IsAdmin(), StateFilter(None))
+@router.message(Command("admin"), StateFilter(None))
 async def admin_panel(message: types.Message, state: FSMContext):
     """Displays the main admin panel."""
     await state.clear()
@@ -43,13 +54,16 @@ async def admin_panel(message: types.Message, state: FSMContext):
         f"  - Активних замовлень: {stats['active_orders']}\n"
         f"  - Завершено замовлень: {stats['completed_orders']}"
     )
-    await send_message_with_photo(message, ADMIN_PANEL_IMAGE_PATH, text, get_admin_keyboard())
+    await send_message_with_photo(message, ADMIN_PANEL_IMAGE_PATH, text, get_admin_keyboard(message.from_user.id))
 
 @router.callback_query(Navigate.filter(F.to == "admin_panel"))
 async def back_to_admin_panel(call: types.CallbackQuery, state: FSMContext):
     """Handles the 'Back to Admin Panel' button."""
     await admin_panel(call.message, state)
     await call.answer()
+
+# Включаем все FSM-роутеры в главный админ-роутер
+router.include_router(admin_router)
 
 # --- Driver Management ---
 
@@ -88,8 +102,7 @@ async def show_drivers_list(call: types.CallbackQuery, page: int, list_type: str
 
 @router.callback_query(Navigate.filter(F.to == "manage_drivers"))
 async def manage_drivers_menu(call: types.CallbackQuery):
-    """Shows the driver management menu."""
-    from keyboards.admin_keyboards import get_driver_management_keyboard
+    """Shows the driver management menu."""    
     await call.message.edit_text("<b>Керування водіями</b>", reply_markup=get_driver_management_keyboard())
     await call.answer()
 
@@ -150,7 +163,6 @@ async def show_clients_list(call: types.CallbackQuery, page: int):
 @router.callback_query(Navigate.filter(F.to == "manage_clients"))
 async def manage_clients_menu(call: types.CallbackQuery):
     """Shows the first page of the client list."""
-    await show_clients_list(call, 0)
 
 @router.callback_query(F.data.startswith("admin_cl_list:"))
 async def clients_list_paginator(call: types.CallbackQuery):
@@ -239,8 +251,7 @@ async def show_orders_list(call: types.CallbackQuery, page: int, status: str):
 
 @router.callback_query(Navigate.filter(F.to == "manage_orders"))
 async def manage_orders_menu(call: types.CallbackQuery):
-    """Shows the order management menu."""
-    from keyboards.admin_keyboards import get_order_management_keyboard
+    """Shows the order management menu."""    
     await call.message.edit_text("<b>Керування замовленнями</b>", reply_markup=get_order_management_keyboard())
     await call.answer()
 

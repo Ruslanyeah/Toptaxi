@@ -6,8 +6,8 @@ from .common import Navigate, _add_pagination_buttons
 import html
 from datetime import datetime, timedelta
 from config.config import ADMIN_IDS
-
-def get_admin_keyboard() -> types.InlineKeyboardMarkup:
+ 
+def get_admin_keyboard(user_id: int) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text='📣 Розсилка', callback_data=Navigate(to='news'))
     builder.button(text='📊 Статистика та Аналітика', callback_data=Navigate(to='analytics_menu'))
@@ -15,8 +15,9 @@ def get_admin_keyboard() -> types.InlineKeyboardMarkup:
     builder.button(text='🚦 Водії на зміні', callback_data=Navigate(to='working_drivers_list'))
     builder.button(text='⚙️ Керування користувачами', callback_data=Navigate(to='user_management'))
     builder.button(text='🗂️ Керування замовленнями', callback_data=Navigate(to='order_management'))
-    builder.button(text='👑 Керування адмінами', callback_data=Navigate(to='admin_management'))
-    builder.adjust(2, 1, 2, 1)
+    if user_id in ADMIN_IDS:
+        builder.button(text='👑 Керування адмінами', callback_data=Navigate(to='admin_management'))
+    builder.adjust(2, 1, 2, 1, 1)
     return builder.as_markup()
 
 def get_newsletter_audience_keyboard(counts: dict[str, int]) -> types.InlineKeyboardMarkup:
@@ -85,6 +86,16 @@ def get_order_management_keyboard() -> types.InlineKeyboardMarkup:
     builder.button(text='🗂️ Вся історія замовлень', callback_data=Navigate(to='all_orders_history'))
     builder.button(text='🔎 Знайти замовлення по клієнту', callback_data=Navigate(to='search_order_by_client'))
     builder.button(text='🔎 Знайти замовлення по ID', callback_data=Navigate(to='search_order_by_id'))
+    builder.button(text='↩️ До адмін-панелі', callback_data=Navigate(to='admin_panel'))
+    builder.adjust(1)
+    return builder.as_markup()
+
+def get_driver_management_keyboard() -> types.InlineKeyboardMarkup:
+    """Generates a keyboard for the driver management menu."""
+    builder = InlineKeyboardBuilder()
+    builder.button(text='📋 Список всіх водіїв', callback_data=AdminDriverList(action='view', list_type='all', page=0))
+    builder.button(text='🚦 Водії на зміні', callback_data=AdminDriverList(action='view', list_type='working', page=0))
+    builder.button(text='🔴 Водії не на зміні', callback_data=AdminDriverList(action='view', list_type='not_working', page=0))
     builder.button(text='↩️ До адмін-панелі', callback_data=Navigate(to='admin_panel'))
     builder.adjust(1)
     return builder.as_markup()

@@ -25,8 +25,9 @@ def setup_routers():
     from .driver_cabinet import IsDriver
 
     # 1. Setup Admin Router
+    # admin_main.router уже содержит в себе все необходимые FSM-роутеры.
+    # Нам просто нужно его вернуть.
     admin_root_router = admin_main.router
-    admin_root_router.include_router(admin_router)
 
     # 2. Setup User Routers
     main_router = Router()

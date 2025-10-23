@@ -1,6 +1,7 @@
 from aiogram import types, F, Router
 from aiogram.fsm.context import FSMContext
 import html
+from aiogram.filters import BaseFilter
 
 from states.fsm_states import AdminState
 from database import queries as db_queries
@@ -13,6 +14,15 @@ from handlers.common.helpers import _display_client_profile
 from config.config import ADMIN_IDS
 
 router = Router()
+
+# Создаем новый фильтр, который проверяет, является ли пользователь супер-админом
+class IsRootAdmin(BaseFilter):
+    async def __call__(self, event: types.Message | types.CallbackQuery) -> bool:
+        return event.from_user.id in ADMIN_IDS
+
+# Применяем фильтр ко всему роутеру. Теперь только супер-админы могут использовать эти хендлеры.
+router.message.filter(IsRootAdmin())
+router.callback_query.filter(IsRootAdmin())
 
 async def show_admin_management_menu(target: types.Message | types.CallbackQuery):
     """Displays the admin management menu with a list of current admins."""

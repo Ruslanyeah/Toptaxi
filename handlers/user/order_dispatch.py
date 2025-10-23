@@ -49,7 +49,15 @@ async def _process_next_driver_in_dispatch(bot: Bot, order_id: int) -> None:
     """
     dispatch_payload_json = await db_queries.get_dispatch_payload(order_id)
     if not dispatch_payload_json:
-        logger.error(f"Cannot process next driver for order {order_id}: dispatch payload not found.")
+        logger.error(f"Cannot process next driver for order {order_id}: dispatch payload not found. Cancelling order.")
+        # Если payload не найден, это критическая ошибка. Отменяем заказ, чтобы разорвать цикл.
+        client_id = await db_queries.get_order_client_id(order_id)
+        if client_id:
+            try:
+                await bot.send_message(client_id, f"На жаль, сталася технічна помилка під час пошуку водія для замовлення №{order_id}. Замовлення скасовано. Будь ласка, створіть його заново.", reply_markup=main_menu_keyboard)
+            except Exception as e:
+                logger.warning(f"Failed to send critical error notice to client {client_id} for order {order_id}: {e}")
+        await db_queries.update_order_status(order_id, 'cancelled_no_drivers')
         return
 
     payload = json.loads(dispatch_payload_json)

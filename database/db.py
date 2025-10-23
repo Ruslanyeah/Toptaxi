@@ -84,7 +84,8 @@ async def init_db():
                     longitude REAL,
                     last_location_update TIMESTAMP,
                     shift_started_at TIMESTAMP,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    is_available INTEGER DEFAULT 0
                 );
 
                 CREATE TABLE IF NOT EXISTS orders (
@@ -111,7 +112,7 @@ async def init_db():
                     dispatch_driver_ids TEXT,
                     dispatch_current_driver_index INTEGER,
                     dispatch_offer_sent_at TIMESTAMP
-                );
+                ); 
 
                 CREATE TABLE IF NOT EXISTS favorite_addresses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -162,11 +163,12 @@ async def init_db():
             # Here we add new columns to existing tables if they are missing.
             # This makes the database update automatically when you add new features.
             logger.info("Checking for necessary database migrations...")
-            await _check_and_add_column(cursor, 'orders', 'dispatch_payload', 'TEXT')
+            await _check_and_add_column(cursor, 'orders', 'dispatch_payload', 'TEXT') # Эта строка уже была, но я оставляю ее для ясности
             await _check_and_add_column(cursor, 'orders', 'begin_address_voice_id', 'TEXT')
             await _check_and_add_column(cursor, 'orders', 'finish_address_voice_id', 'TEXT')
             await _check_and_add_column(cursor, 'users', 'last_activity', 'TIMESTAMP')
             await _check_and_add_column(cursor, 'clients', 'last_activity', 'TIMESTAMP')
+            await _check_and_add_column(cursor, 'drivers', 'is_available', 'INTEGER DEFAULT 0')
             
             await db.commit()
             logger.info("Database initialization and migration check complete.")

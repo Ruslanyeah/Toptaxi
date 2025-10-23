@@ -152,11 +152,11 @@ async def main():
     dp = Dispatcher()
 
     # Настраиваем роутеры
-    main_commands_router, other_handlers_router, errors_router = setup_routers()
-    # Сначала регистрируем роутер с глобальными командами
-    dp.include_router(main_commands_router)
-    # Затем - все остальные роутеры
-    dp.include_router(other_handlers_router)
+    main_router, admin_router, errors_router = setup_routers()
+    # Сначала регистрируем роутер администратора, т.к. он имеет более высокий приоритет
+    dp.include_router(admin_router)
+    # Затем - основной роутер для всех пользователей
+    dp.include_router(main_router)
     # Роутер для обработки ошибок должен быть последним
     dp.include_router(errors_router)
 

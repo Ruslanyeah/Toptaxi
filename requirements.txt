@@ -1,0 +1,9 @@
+aiogram>=3.0.0
+loguru
+apscheduler
+python-dotenv
+aiosqlite
+python-dateutil
+psutil
+geopy
+requests

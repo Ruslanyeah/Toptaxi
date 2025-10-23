@@ -71,12 +71,12 @@ async def get_driver_cabinet_text_and_keyboard(user_id: int) -> tuple[str, types
     Returns:
         A tuple containing the cabinet text and the corresponding reply keyboard.
     """
-    user_data, overall_completed = await db_queries.get_user_cabinet_data(user_id)
+    user_data, overall_completed = await db_queries.get_driver_cabinet_data(user_id)
     if not user_data or not user_data['driver_user_id']:
         return "Не вдалося знайти ваші дані водія. Зверніться до адміністратора.", None
 
     on_shift = user_data['shift_started_at'] is not None
-    is_available = user_data['isWorking'] == 1
+    is_available = user_data['is_available'] == 1
 
     if not on_shift:
         status_text = "🔴 Відпочиваєте"
